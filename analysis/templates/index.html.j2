@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>券商 App 評論競品分析 ｜ Yuanta Reviews 2.0</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0b0f1a; --panel:#141a2b; --panel-2:#1b2235; --line:#26304a;
+    --text:#e8edf7; --muted:#94a3c0; --accent:#5b8cff;
+    --complaint:#ef4444; --request:#f59e0b; --praise:#22c55e; --other:#7c8aa5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 80px}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+    border-bottom:1px solid var(--line);padding-bottom:22px}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:.5px}
+  .sub{color:var(--muted);font-size:14px;margin:0}
+  .stamp{color:var(--muted);font-size:12px;text-align:right;line-height:1.8}
+  .stamp b{color:var(--text)}
+  section{margin-top:42px}
+  h2{font-size:19px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  .hint{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .grid{display:grid;gap:16px}
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .two{grid-template-columns:1fr 1fr}
+  .three{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){.kpis,.two,.three{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .card.kpi{position:relative;overflow:hidden}
+  .kpi .bar{position:absolute;left:0;top:0;width:5px;height:100%}
+  .kpi .nm{font-size:15px;font-weight:700}
+  .kpi .vd{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .kpi .big{font-size:40px;font-weight:800;line-height:1}
+  .kpi .star{font-size:15px;color:var(--muted)}
+  .kpi .trend{font-size:13px;font-weight:700;margin-left:6px}
+  .kpi .row{display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--muted)}
+  .kpi .row b{display:block;color:var(--text);font-size:15px}
+  .findings{background:linear-gradient(135deg,#161d31,#131829);border:1px solid var(--line);
+    border-radius:16px;padding:16px 22px}
+  .findings ol{margin:0;padding-left:20px}.findings li{margin:8px 0}
+  .chartbox{position:relative;height:300px}
+  /* narrative cards */
+  .ttl{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ttl .chip{width:9px;height:9px;border-radius:50%;flex:none}
+  .ttl .pct{margin-left:auto;font-size:13px;color:var(--muted);font-weight:600}
+  .desc{font-size:13.5px;color:#cdd6ea;margin:2px 0 8px}
+  .impact{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .rev{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;margin:8px 0;font-size:13px}
+  .rev .meta{font-size:11.5px;color:var(--muted);margin-bottom:4px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .stars{color:#fbbf24;letter-spacing:1px}
+  .rec{background:#16203a;border-left:3px solid var(--request);padding:9px 12px;border-radius:8px;margin-top:10px;font-size:13px}
+  .rec b{color:var(--request)}
+  .sharebars{margin:10px 0 6px}
+  .sb{display:flex;align-items:center;gap:8px;font-size:12px;margin:4px 0}
+  .sb .lab{width:64px;color:var(--muted);flex:none}
+  .sb .track{flex:1;height:9px;border-radius:5px;background:var(--panel-2);overflow:hidden}
+  .sb .track>i{display:block;height:100%}
+  .sb .val{width:38px;text-align:right;font-variant-numeric:tabular-nums}
+  .posture .big{font-size:34px;font-weight:800;line-height:1}
+  .posture .seg{display:flex;height:8px;border-radius:5px;overflow:hidden;margin:10px 0}
+  .posture .seg>i{display:block;height:100%}
+  .win{font-size:12.5px;margin-top:8px}.win b{color:var(--praise)}
+  .lose{font-size:12.5px;margin-top:4px}.lose b{color:var(--complaint)}
+  .opp .vs{font-size:13px;margin:8px 0;color:var(--muted)}
+  .learn{display:flex;gap:10px;align-items:flex-start;font-size:13px;margin:10px 0}
+  .learn .tg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;flex:none;margin-top:2px}
+  .road .win0{font-size:12px;color:var(--muted)}
+  .road .hl{font-size:15px;font-weight:700;margin:2px 0 10px}
+  .road ul{margin:0;padding-left:16px;font-size:13px}.road li{margin:5px 0}
+  .road .num0{font-size:30px;font-weight:800;color:var(--accent);line-height:1}
+  h3.blk{font-size:16px;margin:24px 0 12px}
+  details.appendix{margin-top:8px}
+  details.appendix summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:6px 0}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .hero-max{background:#3a1722;border-radius:6px}
+  .gap-pos{color:var(--complaint);font-weight:700}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:600}
+  footer{margin-top:54px;border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:12.5px}
+  code{background:var(--panel-2);padding:1px 6px;border-radius:6px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>券商 App 評論競品分析</h1>
+      <p class="sub">元大投資先生 × 國泰證券 × 永豐金證券大戶  — scikit-learn 主題建模 + 意圖分類，逐項附真實評論</p>
+    </div>
+    <div class="stamp">
+      <div>資料更新：<b>{{ generated_at }}</b></div>
+      <div>分析基於 <b>{{ quality.n_kept }}</b> 則具體評論（已篩除 {{ quality.n_dropped }} 則空泛/過短）</div>
+    </div>
+  </header>
+
+  <section><div class="grid kpis" id="kpis"></div></section>
+
+  <section>
+    <h2><span class="dot"></span>一頁總結</h2>
+    <p class="hint">趕時間的話，看這三行就好；下面每個結論都附真實用戶評論佐證。</p>
+    <div class="findings"><ol id="findings"></ol></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>評分結構與走勢</h2>
+    <p class="hint">左：星等分布（占自家評論%）。右：每月平均評分走勢。各家半年趨勢方向見上方卡片箭頭。</p>
+    <div class="grid two">
+      <div class="card"><div class="chartbox"><canvas id="ratingChart"></canvas></div></div>
+      <div class="card"><div class="chartbox"><canvas id="trendChart"></canvas></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>元大投資先生 核心痛點詳析</h2>
+    <p class="hint">依「抱怨量 × 嚴重度」排序。每項：白話說明 → 真實評論 → 建議方向。</p>
+    <div class="grid two" id="yuantaPain"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>三家共同痛點</h2>
+    <p class="hint">這幾項三家都在燒錢解決——元大做好就是普遍體驗的勝出點，而非單純補課。</p>
+    <div class="grid three" id="sharedPains"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>競品現況對照</h2>
+    <p class="hint">兩家對手「贏在哪、輸在哪」，用各自的真實評論佐證——理解競品體質與切入點。</p>
+    <div class="grid two" id="competitorPosture"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>競品比較洞察 × 元大機會點</h2>
+    <p class="hint">左：可向對手學習的優點。右：元大占比高於對手、可奪回體驗的切入點（建議方向收斂於此）。</p>
+    <div class="grid two">
+      <div class="card"><h3 class="blk" style="margin-top:0">🎯 元大可向競品學習的優點</h3><div id="learnFrom"></div></div>
+      <div><div class="grid" id="opps"></div></div>
+    </div>
+    <h3 class="blk">🚀 策略建議走向 · 三階段</h3>
+    <div class="grid three" id="roadmap"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>附錄：全主題 × 競品數據對照</h2>
+    <details class="appendix">
+      <summary>展開完整數據表（每個主題在三家的占比、星等、嚴重度、落差）</summary>
+      <table class="matrix">
+        <thead><tr>
+          <th>主題</th><th class="num">元大</th><th class="num">國泰</th><th class="num">永豐大戶</th>
+          <th class="num">元大★</th><th class="num">嚴重度</th><th class="num">vs 最佳對手</th>
+        </tr></thead>
+        <tbody id="themeTable"></tbody>
+      </table>
+      <div class="hint" style="margin-top:10px"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#3a1722;border:1px solid var(--complaint);vertical-align:middle"></span> 紅底＝元大占比最高。「vs 最佳對手」＝元大占比減去表現最好那家。</div>
+    </details>
+  </section>
+
+  <footer>
+    <p><b>方法論</b>　斷詞 <code>jieba</code>＋金融自訂詞庫 ｜ 主題 <code>TF-IDF→NMF</code> ｜ 意圖 <code>LogisticRegression</code>（弱監督，5-fold F1<sub>macro</sub>＝{{ model.intent_cv_f1_macro }}）。主題分類與建議措辭為機器分群＋規則命名，數字（占比/星等/抱怨數）為實際統計。</p>
+    <p>資料品質：原始 {{ quality.n_raw }} 則，已篩除 {{ quality.n_dropped }} 則無資訊量評論，分析基於 {{ quality.n_kept }} 則具體評論（因多為 5★ 空泛好評，平均分略低於商店顯示）。重跑：<code>python analysis/build_site.py --fresh</code>。</p>
+  </footer>
+</div>
+
+<script id="payload" type="application/json">{{ data_json|safe }}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('payload').textContent);
+const IC = {complaint:'#ef4444',request:'#f59e0b',praise:'#22c55e',other:'#7c8aa5'};
+const IZH = DATA.meta.intent_zh;
+const ORDER = DATA.meta.apps_order;
+const HERO = DATA.meta.hero;
+const INS = DATA.insights;
+const TREND = Object.fromEntries((INS.rating_trend.cards||[]).map(c=>[c.key,c]));
+Chart.defaults.color='#94a3c0'; Chart.defaults.font.family='"Noto Sans TC","PingFang TC",sans-serif';
+Chart.defaults.borderColor='#26304a';
+const pct=x=>(x*100).toFixed(0)+'%';
+const stars=n=>'★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n);
+const revHTML=r=>`<div class="rev"><div class="meta"><span class="stars">${stars(r.rating)}</span><span>${r.platform||''}</span><span>${r.date||''}</span></div>${r.text}</div>`;
+
+/* KPI cards */
+(function(){
+  const el=document.getElementById('kpis');
+  ORDER.forEach(k=>{
+    const a=DATA.apps[k], t=TREND[k]||{};
+    const col=t.direction==='上升'?IC.praise:(t.direction==='下滑'?IC.complaint:IC.other);
+    const arrow=t.direction==='上升'?'▲':(t.direction==='下滑'?'▼':'▬');
+    const trend=t.delta!=null?`<span class="trend" style="color:${col}">${arrow} ${t.delta>=0?'+':''}${t.delta} 近半年</span>`:'';
+    el.insertAdjacentHTML('beforeend',`
+      <div class="card kpi"><span class="bar" style="background:${a.color}"></span>
+        <div class="nm">${a.name}${a.hero?' ⭐':''}</div><div class="vd">${a.vendor}</div>
+        <div><span class="big">${a.avg_rating}</span> <span class="star">★</span>${trend}</div>
+        <div class="row"><div>評論數<b>${a.n}</b></div>
+          <div>抱怨<b style="color:${IC.complaint}">${pct(a.intents.complaint.share)}</b></div>
+          <div>好評<b style="color:${IC.praise}">${pct(a.intents.praise.share)}</b></div></div>
+      </div>`);
+  });
+})();
+
+/* findings */
+(function(){const ol=document.getElementById('findings');
+  DATA.headlines.forEach(h=>{const li=document.createElement('li');li.textContent=h;ol.appendChild(li);});})();
+
+/* rating distribution */
+new Chart(document.getElementById('ratingChart'),{type:'bar',
+  data:{labels:['1★','2★','3★','4★','5★'],datasets:ORDER.map(k=>{const a=DATA.apps[k];const tot=Object.values(a.rating_dist).reduce((x,y)=>x+y,0);
+    return {label:a.name,backgroundColor:a.color,borderRadius:5,data:[1,2,3,4,5].map(r=>+(100*a.rating_dist[r]/tot).toFixed(1))};})},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}%`}}},
+    scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'#1d2740'}},x:{grid:{display:false}}}}});
+
+/* monthly trend */
+(function(){const months=[...new Set(ORDER.flatMap(k=>DATA.apps[k].monthly.map(m=>m.month)))].sort();
+  new Chart(document.getElementById('trendChart'),{type:'line',
+    data:{labels:months,datasets:ORDER.map(k=>{const a=DATA.apps[k];const byM=Object.fromEntries(a.monthly.map(m=>[m.month,m.avg]));
+      return {label:a.name,borderColor:a.color,backgroundColor:a.color,tension:.3,spanGaps:true,pointRadius:3,data:months.map(m=>byM[m]??null)};})},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+      scales:{y:{min:1,max:5,title:{display:true,text:'平均評分'},grid:{color:'#1d2740'}},x:{grid:{display:false}}}}});})();
+
+/* 元大核心痛點詳析 */
+(function(){const wrap=document.getElementById('yuantaPain');
+  INS.yuanta_pain.forEach(p=>wrap.insertAdjacentHTML('beforeend',`
+    <div class="card">
+      <div class="ttl"><span class="chip" style="background:${IC.complaint}"></span>${p.label}<span class="pct">${p.complaints} 則抱怨</span></div>
+      <div class="desc">${p.desc}</div>
+      <div class="impact">${p.impact}</div>
+      ${(p.quotes||[]).map(revHTML).join('')}
+      <div class="rec"><b>建議方向：</b>${p.rec}</div>
+    </div>`));})();
+
+/* 三家共同痛點 */
+(function(){const wrap=document.getElementById('sharedPains');
+  INS.shared_pains.forEach(s=>{
+    const bars=ORDER.map(k=>`<div class="sb"><span class="lab">${DATA.apps[k].name.slice(0,4)}</span>
+      <span class="track"><i style="width:${Math.min(100,s.shares[k]*100*2.5)}%;background:${DATA.apps[k].color}"></i></span>
+      <span class="val">${pct(s.shares[k])}</span></div>`).join('');
+    wrap.insertAdjacentHTML('beforeend',`
+      <div class="card"><div class="ttl">⚡ ${s.label}</div>
+        <div class="desc">${s.desc}</div>
+        <div class="sharebars">${bars}</div>
+        <div class="impact">三家都受影響，最嚴重：<b style="color:var(--text)">${s.worst_name}</b>。</div>
+      </div>`);
+  });})();
+
+/* 競品現況對照 */
+(function(){const wrap=document.getElementById('competitorPosture');
+  Object.entries(INS.competitor_deep).forEach(([k,d])=>{
+    const a=DATA.apps[k];
+    const seg=`<div class="seg">
+      <i style="width:${d.complaint_share*100}%;background:${IC.complaint}"></i>
+      <i style="width:${(1-d.complaint_share-d.praise_share)*100}%;background:${IC.other}"></i>
+      <i style="width:${d.praise_share*100}%;background:${IC.praise}"></i></div>`;
+    const win = d.strength?`<div class="win">✅ 贏在「<b>${d.strength.label}</b>」（${d.strength.avg}★）${d.strength.quotes&&d.strength.quotes[0]?revHTML(d.strength.quotes[0]):''}</div>`:'';
+    const lose = (d.pains&&d.pains[0])?`<div class="lose">⚠️ 主要抱怨「<b>${d.pains[0].label}</b>」${d.pains[0].quotes&&d.pains[0].quotes[0]?revHTML(d.pains[0].quotes[0]):''}</div>`:'';
+    wrap.insertAdjacentHTML('beforeend',`
+      <div class="card posture"><span class="bar"></span>
+        <div class="ttl"><span class="chip" style="background:${a.color}"></span>${d.name}<span class="pct">${d.vendor}</span></div>
+        <div><span class="big">${d.avg}</span> <span class="star" style="color:var(--muted)">★ 平均</span></div>
+        ${seg}
+        <div class="impact">抱怨 ${pct(d.complaint_share)}　好評 ${pct(d.praise_share)}</div>
+        ${win}${lose}
+      </div>`);
+  });})();
+
+/* 可學習的優點 */
+(function(){const wrap=document.getElementById('learnFrom');
+  INS.learn_from.forEach(l=>wrap.insertAdjacentHTML('beforeend',`
+    <div class="learn"><span class="tg" style="background:${l.color}22;color:${l.color}">${l.rival_name.slice(0,2)}</span>
+      <div>${l.note}${l.quote?revHTML(l.quote):''}</div></div>`));})();
+
+/* 機會點 */
+(function(){const wrap=document.getElementById('opps'); const hc=DATA.apps[HERO].color;
+  INS.opportunities.forEach(o=>{const rc=DATA.apps[o.rival_key].color;
+    wrap.insertAdjacentHTML('beforeend',`
+      <div class="card opp">
+        <div class="ttl"><span class="chip" style="background:${IC.request}"></span>${o.label}</div>
+        <div class="desc">${o.insight}</div>
+        <div class="vs"><b style="color:${hc}">元大 ${pct(o.hero_share)}${o.hero_avg?` · ${o.hero_avg}★`:''}</b>　vs <b style="color:${rc}">${o.rival_name} ${pct(o.rival_share)}${o.rival_avg?` · ${o.rival_avg}★`:''}</b></div>
+        <div class="rec"><b>機會點：</b>${o.rec}</div>
+      </div>`);});})();
+
+/* 路線圖 */
+(function(){const wrap=document.getElementById('roadmap');
+  INS.roadmap.forEach((b,i)=>wrap.insertAdjacentHTML('beforeend',`
+    <div class="card road"><div class="num0">${i+1}</div><div class="win0">${b.window}</div><div class="hl">${b.label}</div>
+      <ul>${b.items.map(it=>`<li><b>${it.label}</b>：${it.rec}</li>`).join('')}</ul></div>`));})();
+
+/* 附錄矩陣 */
+(function(){const tb=document.getElementById('themeTable');
+  const themes=DATA.themes.slice().sort((a,b)=>b.by_app[HERO].share-a.by_app[HERO].share);
+  themes.forEach(t=>{
+    const shares=ORDER.map(k=>t.by_app[k].share), maxShare=Math.max(...shares), heroShare=t.by_app[HERO].share;
+    const rivalMin=Math.min(...ORDER.filter(k=>k!==HERO).map(k=>t.by_app[k].share));
+    const heroWorst=heroShare>=maxShare-1e-9, gap=heroShare-rivalMin;
+    const cell=k=>{const s=t.by_app[k].share,hot=(k===HERO&&heroWorst);
+      return `<td class="num ${hot?'hero-max':''}"><b style="color:${k===HERO?DATA.apps[k].color:'var(--text)'}">${pct(s)}</b></td>`;};
+    const gapCell=(heroWorst&&gap>0.01)?`<td class="num gap-pos">+${(gap*100).toFixed(0)}pt</td>`:`<td class="num" style="color:var(--muted)">—</td>`;
+    tb.insertAdjacentHTML('beforeend',`<tr>
+      <td><b>${t.label}</b> <span class="pill" style="background:${IC[t.dom_intent]}22;color:${IC[t.dom_intent]}">${t.dom_intent_zh}</span></td>
+      ${cell('yuanta')}${cell('cathay')}${cell('sinopac')}
+      <td class="num">${t.by_app[HERO].avg??'—'}</td>
+      <td class="num">${pct(t.neg_share)}</td>${gapCell}</tr>`);
+  });})();
+</script>
+</body>
+</html>

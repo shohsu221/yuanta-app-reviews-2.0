@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects
+# Serve the canonical dashboard (Yuanta_Reviews_Web.html) at the site root.
+# 200 = rewrite: the URL stays "/" while B2's content is served.
+/    /Yuanta_Reviews_Web.html    200

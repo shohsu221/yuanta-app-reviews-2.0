@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>券商 App 評論競品分析 ｜ Yuanta Reviews 2.0</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0b0f1a; --panel:#141a2b; --panel-2:#1b2235; --line:#26304a;
+    --text:#e8edf7; --muted:#94a3c0; --accent:#5b8cff;
+    --complaint:#ef4444; --request:#f59e0b; --praise:#22c55e; --other:#7c8aa5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 80px}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+    border-bottom:1px solid var(--line);padding-bottom:22px}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:.5px}
+  .sub{color:var(--muted);font-size:14px;margin:0}
+  .stamp{color:var(--muted);font-size:12px;text-align:right;line-height:1.8}
+  .stamp b{color:var(--text)}
+  section{margin-top:42px}
+  h2{font-size:19px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  .hint{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .grid{display:grid;gap:16px}
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .two{grid-template-columns:1fr 1fr}
+  .three{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){.kpis,.two,.three{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .card.kpi{position:relative;overflow:hidden}
+  .kpi .bar{position:absolute;left:0;top:0;width:5px;height:100%}
+  .kpi .nm{font-size:15px;font-weight:700}
+  .kpi .vd{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .kpi .big{font-size:40px;font-weight:800;line-height:1}
+  .kpi .star{font-size:15px;color:var(--muted)}
+  .kpi .trend{font-size:13px;font-weight:700;margin-left:6px}
+  .kpi .row{display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--muted)}
+  .kpi .row b{display:block;color:var(--text);font-size:15px}
+  .findings{background:linear-gradient(135deg,#161d31,#131829);border:1px solid var(--line);
+    border-radius:16px;padding:16px 22px}
+  .findings ol{margin:0;padding-left:20px}.findings li{margin:8px 0}
+  .chartbox{position:relative;height:300px}
+  /* narrative cards */
+  .ttl{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ttl .chip{width:9px;height:9px;border-radius:50%;flex:none}
+  .ttl .pct{margin-left:auto;font-size:13px;color:var(--muted);font-weight:600}
+  .desc{font-size:13.5px;color:#cdd6ea;margin:2px 0 8px}
+  .impact{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .rev{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;margin:8px 0;font-size:13px}
+  .rev .meta{font-size:11.5px;color:var(--muted);margin-bottom:4px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .stars{color:#fbbf24;letter-spacing:1px}
+  .rec{background:#16203a;border-left:3px solid var(--request);padding:9px 12px;border-radius:8px;margin-top:10px;font-size:13px}
+  .rec b{color:var(--request)}
+  .sharebars{margin:10px 0 6px}
+  .sb{display:flex;align-items:center;gap:8px;font-size:12px;margin:4px 0}
+  .sb .lab{width:64px;color:var(--muted);flex:none}
+  .sb .track{flex:1;height:9px;border-radius:5px;background:var(--panel-2);overflow:hidden}
+  .sb .track>i{display:block;height:100%}
+  .sb .val{width:38px;text-align:right;font-variant-numeric:tabular-nums}
+  .posture .big{font-size:34px;font-weight:800;line-height:1}
+  .posture .seg{display:flex;height:8px;border-radius:5px;overflow:hidden;margin:10px 0}
+  .posture .seg>i{display:block;height:100%}
+  .win{font-size:12.5px;margin-top:8px}.win b{color:var(--praise)}
+  .lose{font-size:12.5px;margin-top:4px}.lose b{color:var(--complaint)}
+  .opp .vs{font-size:13px;margin:8px 0;color:var(--muted)}
+  .learn{display:flex;gap:10px;align-items:flex-start;font-size:13px;margin:10px 0}
+  .learn .tg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;flex:none;margin-top:2px}
+  .road .win0{font-size:12px;color:var(--muted)}
+  .road .hl{font-size:15px;font-weight:700;margin:2px 0 10px}
+  .road ul{margin:0;padding-left:16px;font-size:13px}.road li{margin:5px 0}
+  .road .num0{font-size:30px;font-weight:800;color:var(--accent);line-height:1}
+  h3.blk{font-size:16px;margin:24px 0 12px}
+  details.appendix{margin-top:8px}
+  details.appendix summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:6px 0}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .hero-max{background:#3a1722;border-radius:6px}
+  .gap-pos{color:var(--complaint);font-weight:700}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:600}
+  footer{margin-top:54px;border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:12.5px}
+  code{background:var(--panel-2);padding:1px 6px;border-radius:6px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>券商 App 評論競品分析</h1>
+      <p class="sub">元大投資先生 × 國泰證券 × 永豐金證券大戶  — scikit-learn 主題建模 + 意圖分類，逐項附真實評論</p>
+    </div>
+    <div class="stamp">
+      <div>資料更新：<b>2026-06-25 14:06</b></div>
+      <div>分析基於 <b>1176</b> 則具體評論（已篩除 64 則空泛/過短）</div>
+    </div>
+  </header>
+
+  <section><div class="grid kpis" id="kpis"></div></section>
+
+  <section>
+    <h2><span class="dot"></span>一頁總結</h2>
+    <p class="hint">趕時間的話，看這三行就好；下面每個結論都附真實用戶評論佐證。</p>
+    <div class="findings"><ol id="findings"></ol></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>評分結構與走勢</h2>
+    <p class="hint">左：星等分布（占自家評論%）。右：每月平均評分走勢。各家半年趨勢方向見上方卡片箭頭。</p>
+    <div class="grid two">
+      <div class="card"><div class="chartbox"><canvas id="ratingChart"></canvas></div></div>
+      <div class="card"><div class="chartbox"><canvas id="trendChart"></canvas></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>元大投資先生 核心痛點詳析</h2>
+    <p class="hint">依「抱怨量 × 嚴重度」排序。每項：白話說明 → 真實評論 → 建議方向。</p>
+    <div class="grid two" id="yuantaPain"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>三家共同痛點</h2>
+    <p class="hint">這幾項三家都在燒錢解決——元大做好就是普遍體驗的勝出點，而非單純補課。</p>
+    <div class="grid three" id="sharedPains"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>競品現況對照</h2>
+    <p class="hint">兩家對手「贏在哪、輸在哪」，用各自的真實評論佐證——理解競品體質與切入點。</p>
+    <div class="grid two" id="competitorPosture"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>競品比較洞察 × 元大機會點</h2>
+    <p class="hint">左：可向對手學習的優點。右：元大占比高於對手、可奪回體驗的切入點（建議方向收斂於此）。</p>
+    <div class="grid two">
+      <div class="card"><h3 class="blk" style="margin-top:0">🎯 元大可向競品學習的優點</h3><div id="learnFrom"></div></div>
+      <div><div class="grid" id="opps"></div></div>
+    </div>
+    <h3 class="blk">🚀 策略建議走向 · 三階段</h3>
+    <div class="grid three" id="roadmap"></div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>附錄：全主題 × 競品數據對照</h2>
+    <details class="appendix">
+      <summary>展開完整數據表（每個主題在三家的占比、星等、嚴重度、落差）</summary>
+      <table class="matrix">
+        <thead><tr>
+          <th>主題</th><th class="num">元大</th><th class="num">國泰</th><th class="num">永豐大戶</th>
+          <th class="num">元大★</th><th class="num">嚴重度</th><th class="num">vs 最佳對手</th>
+        </tr></thead>
+        <tbody id="themeTable"></tbody>
+      </table>
+      <div class="hint" style="margin-top:10px"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#3a1722;border:1px solid var(--complaint);vertical-align:middle"></span> 紅底＝元大占比最高。「vs 最佳對手」＝元大占比減去表現最好那家。</div>
+    </details>
+  </section>
+
+  <footer>
+    <p><b>方法論</b>　斷詞 <code>jieba</code>＋金融自訂詞庫 ｜ 主題 <code>TF-IDF→NMF</code> ｜ 意圖 <code>LogisticRegression</code>（弱監督，5-fold F1<sub>macro</sub>＝0.692）。主題分類與建議措辭為機器分群＋規則命名，數字（占比/星等/抱怨數）為實際統計。</p>
+    <p>資料品質：原始 1240 則，已篩除 64 則無資訊量評論，分析基於 1176 則具體評論（因多為 5★ 空泛好評，平均分略低於商店顯示）。重跑：<code>python analysis/build_site.py --fresh</code>。</p>
+  </footer>
+</div>
+
+<script id="payload" type="application/json">{"meta": {"generated_at": "2026-06-25 14:06", "n_reviews": 1176, "quality": {"n_raw": 1240, "n_kept": 1176, "n_dropped": 64}, "hero": "yuanta", "apps_order": ["yuanta", "cathay", "sinopac"], "intent_labels": ["complaint", "request", "praise", "other"], "intent_zh": {"complaint": "問題/抱怨", "request": "功能許願", "praise": "好評肯定", "other": "其他"}, "model": {"themes": "TF-IDF + NMF (scikit-learn)", "intent": "TF-IDF + LogisticRegression, weak-supervised", "intent_cv_f1_macro": 0.692, "intent_seeds": 1034, "tokenizer": "jieba + domain user-dict"}}, "apps": {"yuanta": {"key": "yuanta", "name": "元大投資先生", "vendor": "元大證券", "color": "#e60012", "hero": true, "n": 388, "avg_rating": 2.34, "rating_dist": {"1": 192, "2": 41, "3": 50, "4": 40, "5": 65}, "platforms": {"App Store": {"n": 202, "avg": 2.12}, "Google Play": {"n": 186, "avg": 2.58}}, "intents": {"complaint": {"n": 257, "share": 0.6624}, "request": {"n": 58, "share": 0.1495}, "praise": {"n": 54, "share": 0.1392}, "other": {"n": 19, "share": 0.049}}, "monthly": [{"month": "2026-01", "n": 78, "avg": 2.67, "complaint": 51}, {"month": "2026-02", "n": 58, "avg": 2.1, "complaint": 44}, {"month": "2026-03", "n": 48, "avg": 2.15, "complaint": 33}, {"month": "2026-04", "n": 64, "avg": 2.56, "complaint": 35}, {"month": "2026-05", "n": 88, "avg": 2.39, "complaint": 58}, {"month": "2026-06", "n": 52, "avg": 1.96, "complaint": 36}], "versions": [{"version": "4.14.1", "n": 42, "avg": 2.1, "last": "2026-03-23"}, {"version": "4.13.0", "n": 48, "avg": 2.52, "last": "2026-03-30"}, {"version": "4.14.0", "n": 73, "avg": 2.51, "last": "2026-04-03"}, {"version": "4.16.0", "n": 18, "avg": 2.39, "last": "2026-04-23"}, {"version": "4.15.0", "n": 33, "avg": 2.06, "last": "2026-04-24"}, {"version": "4.16.1", "n": 55, "avg": 2.78, "last": "2026-05-16"}, {"version": "4.17.0", "n": 85, "avg": 1.96, "last": "2026-06-12"}, {"version": "4.18.0", "n": 14, "avg": 2.5, "last": "2026-06-23"}, {"version": "4.18.1", "n": 5, "avg": 2.0, "last": "2026-06-24"}]}, "cathay": {"key": "cathay", "name": "國泰證券", "vendor": "國泰證券", "color": "#00a040", "hero": false, "n": 415, "avg_rating": 2.19, "rating_dist": {"1": 212, "2": 56, "3": 51, "4": 50, "5": 46}, "platforms": {"App Store": {"n": 208, "avg": 2.28}, "Google Play": {"n": 207, "avg": 2.09}}, "intents": {"complaint": {"n": 289, "share": 0.6964}, "request": {"n": 57, "share": 0.1373}, "praise": {"n": 50, "share": 0.1205}, "other": {"n": 19, "share": 0.0458}}, "monthly": [{"month": "2026-01", "n": 50, "avg": 2.72, "complaint": 30}, {"month": "2026-02", "n": 39, "avg": 2.31, "complaint": 23}, {"month": "2026-03", "n": 88, "avg": 2.3, "complaint": 61}, {"month": "2026-04", "n": 72, "avg": 2.12, "complaint": 53}, {"month": "2026-05", "n": 105, "avg": 1.9, "complaint": 79}, {"month": "2026-06", "n": 61, "avg": 2.07, "complaint": 43}], "versions": [{"version": "3.6.94", "n": 6, "avg": 3.83, "last": "2026-01-13"}, {"version": "3.6.95", "n": 12, "avg": 2.75, "last": "2026-01-22"}, {"version": "3.6.96", "n": 6, "avg": 2.5, "last": "2026-01-22"}, {"version": "3.6.97", "n": 32, "avg": 2.53, "last": "2026-03-17"}, {"version": "3.6.98", "n": 67, "avg": 2.04, "last": "2026-03-19"}, {"version": "3.7.3", "n": 43, "avg": 2.07, "last": "2026-04-27"}, {"version": "3.7.2", "n": 11, "avg": 2.36, "last": "2026-05-12"}, {"version": "3.7.4", "n": 25, "avg": 2.2, "last": "2026-05-12"}, {"version": "3.7.5", "n": 58, "avg": 1.84, "last": "2026-05-18"}, {"version": "3.7.1", "n": 34, "avg": 2.38, "last": "2026-05-26"}, {"version": "3.7.7", "n": 62, "avg": 2.19, "last": "2026-06-13"}, {"version": "3.7.8", "n": 15, "avg": 2.2, "last": "2026-06-18"}, {"version": "3.7.9", "n": 12, "avg": 1.33, "last": "2026-06-23"}]}, "sinopac": {"key": "sinopac", "name": "永豐金證券大戶", "vendor": "永豐金證券", "color": "#f08300", "hero": false, "n": 373, "avg_rating": 3.14, "rating_dist": {"1": 121, "2": 30, "3": 40, "4": 39, "5": 143}, "platforms": {"App Store": {"n": 226, "avg": 3.1}, "Google Play": {"n": 147, "avg": 3.21}}, "intents": {"complaint": {"n": 166, "share": 0.445}, "request": {"n": 55, "share": 0.1475}, "praise": {"n": 128, "share": 0.3432}, "other": {"n": 24, "share": 0.0643}}, "monthly": [{"month": "2026-01", "n": 83, "avg": 3.18, "complaint": 39}, {"month": "2026-02", "n": 25, "avg": 2.68, "complaint": 15}, {"month": "2026-03", "n": 60, "avg": 2.9, "complaint": 29}, {"month": "2026-04", "n": 53, "avg": 3.15, "complaint": 22}, {"month": "2026-05", "n": 94, "avg": 3.34, "complaint": 33}, {"month": "2026-06", "n": 58, "avg": 3.21, "complaint": 28}], "versions": [{"version": "1.5.51", "n": 20, "avg": 1.85, "last": "2026-01-19"}, {"version": "1.5.49", "n": 8, "avg": 3.12, "last": "2026-01-26"}, {"version": "1.5.50", "n": 19, "avg": 4.26, "last": "2026-01-28"}, {"version": "1.5.52", "n": 25, "avg": 3.16, "last": "2026-01-28"}, {"version": "1.6.0", "n": 10, "avg": 2.8, "last": "2026-02-05"}, {"version": "1.6.1", "n": 30, "avg": 2.87, "last": "2026-03-17"}, {"version": "1.6.2", "n": 50, "avg": 2.84, "last": "2026-03-31"}, {"version": "1.6.3", "n": 17, "avg": 3.24, "last": "2026-04-17"}, {"version": "1.6.4", "n": 32, "avg": 3.19, "last": "2026-04-29"}, {"version": "1.6.5", "n": 37, "avg": 2.97, "last": "2026-05-27"}, {"version": "1.6.6", "n": 51, "avg": 3.49, "last": "2026-06-06"}, {"version": "1.6.7", "n": 39, "avg": 3.33, "last": "2026-06-15"}, {"version": "1.6.8", "n": 23, "avg": 3.48, "last": "2026-06-24"}]}}, "themes": [{"id": "登入與連線", "label": "登入與連線", "top_terms": ["登入", "下單", "系統", "改善", "手機", "連線", "交易", "其他"], "size": 408, "share": 0.3545, "by_app": {"yuanta": {"n": 130, "share": 0.3412, "avg": 1.86}, "cathay": {"n": 147, "share": 0.3559, "avg": 1.81}, "sinopac": {"n": 131, "share": 0.3669, "avg": 2.48}}, "neg_share": 0.6936, "dom_intent": "complaint", "dom_intent_zh": "問題/抱怨"}, {"id": "海外與複委託", "label": "海外與複委託", "top_terms": ["股票", "顯示", "增加", "美股", "名稱", "新增", "設定", "大戶"], "size": 271, "share": 0.2354, "by_app": {"yuanta": {"n": 102, "share": 0.2677, "avg": 2.8}, "cathay": {"n": 103, "share": 0.2494, "avg": 2.58}, "sinopac": {"n": 66, "share": 0.1849, "avg": 3.58}}, "neg_share": 0.4391, "dom_intent": "complaint", "dom_intent_zh": "問題/抱怨"}, {"id": "效能與穩定", "label": "效能與穩定", "top_terms": ["更新", "線圖", "手機", "顯示", "正常", "資料", "畫面", "打開"], "size": 192, "share": 0.1668, "by_app": {"yuanta": {"n": 71, "share": 0.1864, "avg": 2.13}, "cathay": {"n": 66, "share": 0.1598, "avg": 1.68}, "sinopac": {"n": 55, "share": 0.1541, "avg": 2.36}}, "neg_share": 0.6927, "dom_intent": "complaint", "dom_intent_zh": "問題/抱怨"}, {"id": "介面與體驗", "label": "介面與體驗", "top_terms": ["介面", "操作", "簡單", "方便", "容易", "還不錯", "易懂", "一點"], "size": 147, "share": 0.1277, "by_app": {"yuanta": {"n": 33, "share": 0.0866, "avg": 2.52}, "cathay": {"n": 47, "share": 0.1138, "avg": 2.79}, "sinopac": {"n": 67, "share": 0.1877, "avg": 3.67}}, "neg_share": 0.4082, "dom_intent": "praise", "dom_intent_zh": "好評肯定"}, {"id": "庫存與損益", "label": "庫存與損益", "top_terms": ["庫存", "報價", "損益", "指定", "美股", "改版", "連線", "今天"], "size": 99, "share": 0.086, "by_app": {"yuanta": {"n": 39, "share": 0.1024, "avg": 2.59}, "cathay": {"n": 45, "share": 0.109, "avg": 2.4}, "sinopac": {"n": 15, "share": 0.042, "avg": 3.6}}, "neg_share": 0.4949, "dom_intent": "complaint", "dom_intent_zh": "問題/抱怨"}, {"id": "好用・便利", "label": "好用・便利", "top_terms": ["好用", "便利", "清楚", "推薦", "資訊", "下單", "軟體", "看盤"], "size": 34, "share": 0.0295, "by_app": {"yuanta": {"n": 6, "share": 0.0157, "avg": 4.83}, "cathay": {"n": 5, "share": 0.0121, "avg": 4.2}, "sinopac": {"n": 23, "share": 0.0644, "avg": 4.57}}, "neg_share": 0.0882, "dom_intent": "praise", "dom_intent_zh": "好評肯定"}], "competitor_gap": [{"id": "海外與複委託", "label": "海外與複委託", "dom_intent": "complaint", "hero_share": 0.2677, "hero_avg": 2.8, "rival_shares": {"cathay": 0.2494, "sinopac": 0.1849}, "best_rival": "sinopac", "best_rival_share": 0.1849, "gap": 0.0828}, {"id": "庫存與損益", "label": "庫存與損益", "dom_intent": "complaint", "hero_share": 0.1024, "hero_avg": 2.59, "rival_shares": {"cathay": 0.109, "sinopac": 0.042}, "best_rival": "sinopac", "best_rival_share": 0.042, "gap": 0.0604}, {"id": "效能與穩定", "label": "效能與穩定", "dom_intent": "complaint", "hero_share": 0.1864, "hero_avg": 2.13, "rival_shares": {"cathay": 0.1598, "sinopac": 0.1541}, "best_rival": "sinopac", "best_rival_share": 0.1541, "gap": 0.0323}, {"id": "好用・便利", "label": "好用・便利", "dom_intent": "praise", "hero_share": 0.0157, "hero_avg": 4.83, "rival_shares": {"cathay": 0.0121, "sinopac": 0.0644}, "best_rival": "cathay", "best_rival_share": 0.0121, "gap": 0.0036}, {"id": "登入與連線", "label": "登入與連線", "dom_intent": "complaint", "hero_share": 0.3412, "hero_avg": 1.86, "rival_shares": {"cathay": 0.3559, "sinopac": 0.3669}, "best_rival": "cathay", "best_rival_share": 0.3559, "gap": -0.0147}, {"id": "介面與體驗", "label": "介面與體驗", "dom_intent": "praise", "hero_share": 0.0866, "hero_avg": 2.52, "rival_shares": {"cathay": 0.1138, "sinopac": 0.1877}, "best_rival": "cathay", "best_rival_share": 0.1138, "gap": -0.0272}], "headlines": ["競爭定位：元大投資先生 落後體驗標竿 永豐金證券大戶 0.8★，且近半年趨勢下滑——體驗負債正在擴大，需要止血。", "最大失分點：「海外與複委託」的抱怨在 元大投資先生 占比高出最佳對手 永豐金證券大戶 8 個百分點，是被拉開差距的主因。", "行動順序：66% 的評論是抱怨、只有 15% 是功能許願——先把穩定度與登入體驗止血，再談功能超車。"], "insights": {"rating_trend": {"cards": [{"key": "yuanta", "name": "元大投資先生", "color": "#e60012", "first_month": "2026-01", "first_avg": 2.67, "last_month": "2026-06", "last_avg": 1.96, "delta": -0.71, "direction": "下滑", "low_month": "2026-06", "low_avg": 1.96, "avg": 2.34, "text": "2026-01→2026-06：2.67★ → 1.96★（-0.71），整體下滑；最低點 2026-06（1.96★）。"}, {"key": "cathay", "name": "國泰證券", "color": "#00a040", "first_month": "2026-01", "first_avg": 2.72, "last_month": "2026-06", "last_avg": 2.07, "delta": -0.65, "direction": "下滑", "low_month": "2026-05", "low_avg": 1.9, "avg": 2.19, "text": "2026-01→2026-06：2.72★ → 2.07★（-0.65），整體下滑；最低點 2026-05（1.9★）。"}, {"key": "sinopac", "name": "永豐金證券大戶", "color": "#f08300", "first_month": "2026-01", "first_avg": 3.18, "last_month": "2026-06", "last_avg": 3.21, "delta": 0.03, "direction": "上升", "low_month": "2026-02", "low_avg": 2.68, "avg": 3.14, "text": "2026-01→2026-06：3.18★ → 3.21★（+0.03），整體上升；最低點 2026-02（2.68★）。"}], "summary": ["永豐金證券大戶 評分最高（3.14★）且走勢最穩，是體驗標竿。", "元大投資先生 半年均分 2.34★，近半年趨勢下滑；與標竿仍有 0.8★ 差距。"]}, "yuanta_pain": [{"label": "登入與連線", "n": 130, "complaints": 106, "share": 0.3412, "avg": 1.86, "neg_share": 0.7462, "rec": "背景登入保活、生物辨識快速登入、弱網自動重連", "desc": "頻繁被登出、重新登入、生物辨識失效，或一開 App 就卡在連線中——影響每天進場的第一步。", "quotes": [{"rating": 1, "platform": "App Store", "date": "2026-05-17", "text": "無法開app。無法打開==一直跑出無法完成初始作業重新啟動app"}, {"rating": 2, "platform": "App Store", "date": "2026-05-30", "text": "無法開啟。抱歉 無法完成初始作業 請重新啟動app(100 NET-920G,0)"}], "impact": "占自家評論 34%、負評率 75%（嚴重度高），最該優先止血。"}, {"label": "效能與穩定", "n": 71, "complaints": 62, "share": 0.1864, "avg": 2.13, "neg_share": 0.6761, "rec": "開盤尖峰壓測、行情推送與下單路徑優化、崩潰即時監控", "desc": "開盤尖峰下單卡頓、報價或選擇權跳動消失、閃退與當機，直接造成下單延誤與虧損。", "quotes": [{"rating": 5, "platform": "Google Play", "date": "2026-01-29", "text": "不能更新"}, {"rating": 5, "platform": "App Store", "date": "2026-03-12", "text": "更新ios就無法生物辨識。更新ios就無法生物辨識"}], "impact": "占自家評論 19%、負評率 68%（嚴重度中高），需盡快處理。"}, {"label": "海外與複委託", "n": 102, "complaints": 42, "share": 0.2677, "avg": 2.8, "neg_share": 0.451, "rec": "美股每檔成本與報酬率、股息再投入、複委託對帳", "desc": "美股複委託缺每檔成本與報酬率、股息再投入，海外資產資訊不完整。", "quotes": [{"rating": 1, "platform": "Google Play", "date": "2026-03-28", "text": "沒有線上“股票匯撥”股票移轉其他券商的功能，數位與科技化時代，不但可免去投資人臨櫃申請，且更能節省能源與促進環保。"}, {"rating": 1, "platform": "App Store", "date": "2026-02-09", "text": "軟體爛。股票匯播後 重置成本一直沒辦法用"}], "impact": "占自家評論 27%、負評率 45%（嚴重度中），持續追蹤。"}, {"label": "庫存與損益", "n": 39, "complaints": 28, "share": 0.1024, "avg": 2.59, "neg_share": 0.5128, "rec": "庫存市值／成本／損益即時且正確、跨市場總資產總覽", "desc": "庫存市值／成本／損益顯示錯誤或不即時，缺跨市場的總資產總覽。", "quotes": [{"rating": 1, "platform": "Google Play", "date": "2026-01-30", "text": "為什麼最近庫存報價都不能用"}, {"rating": 1, "platform": "Google Play", "date": "2026-01-30", "text": "改版後，庫存報價功能不能用了!"}], "impact": "占自家評論 10%、負評率 51%（嚴重度中），持續追蹤。"}], "competitor_deep": {"cathay": {"name": "國泰證券", "vendor": "國泰證券", "color": "#00a040", "avg": 2.19, "complaint_share": 0.6964, "praise_share": 0.1205, "pains": [{"label": "登入與連線", "n": 147, "complaints": 122, "share": 0.3559, "avg": 1.81, "neg_share": 0.7687, "rec": "背景登入保活、生物辨識快速登入、弱網自動重連", "desc": "頻繁被登出、重新登入、生物辨識失效，或一開 App 就卡在連線中——影響每天進場的第一步。", "quotes": [{"rating": 2, "platform": "Google Play", "date": "2026-05-06", "text": "時常無法登入app"}, {"rating": 2, "platform": "App Store", "date": "2026-03-31", "text": "登入不了。我才一下未登入密碼就無法使用了，重新設密碼也是一樣的狀…."}], "impact": "占自家評論 36%、負評率 77%（嚴重度高），最該優先止血。"}, {"label": "效能與穩定", "n": 66, "complaints": 62, "share": 0.1598, "avg": 1.68, "neg_share": 0.7727, "rec": "開盤尖峰壓測、行情推送與下單路徑優化、崩潰即時監控", "desc": "開盤尖峰下單卡頓、報價或選擇權跳動消失、閃退與當機，直接造成下單延誤與虧損。", "quotes": [{"rating": 1, "platform": "App Store", "date": "2026-04-13", "text": "又當機是怎樣？。？"}, {"rating": 1, "platform": "Google Play", "date": "2026-06-13", "text": "直接當機不給買了 爛"}], "impact": "占自家評論 16%、負評率 77%（嚴重度高），需盡快處理。"}, {"label": "海外與複委託", "n": 103, "complaints": 54, "share": 0.2494, "avg": 2.58, "neg_share": 0.5243, "rec": "美股每檔成本與報酬率、股息再投入、複委託對帳", "desc": "美股複委託缺每檔成本與報酬率、股息再投入，海外資產資訊不完整。", "quotes": [{"rating": 1, "platform": "App Store", "date": "2026-06-12", "text": "股票都綠綠的希望可以修正顯示。股票都綠綠的希望可以修正顯示"}, {"rating": 1, "platform": "App Store", "date": "2026-05-13", "text": "又掛掉。一直連線不上我要怎麼賣股票？"}], "impact": "占自家評論 25%、負評率 52%（嚴重度中），持續追蹤。"}], "strength": {"label": "介面與體驗", "praise": 16, "avg": 2.79, "quotes": [{"rating": 4, "platform": "App Store", "date": "2026-06-08", "text": "希望新增條件單、到價提醒、期權相關功能。雖然隨身證券app可以做到這兩項，但介面的外觀跟操作簡單程度都輸本app一大截 既然在開戶的時候是推這個app給用戶，就應該把各種功能一站式整合，而非分散在不同的地方，希望能新增上述幾項功能，這個程式的介面真的很漂亮！希望功能也能跟上"}]}}, "sinopac": {"name": "永豐金證券大戶", "vendor": "永豐金證券", "color": "#f08300", "avg": 3.14, "complaint_share": 0.445, "praise_share": 0.3432, "pains": [{"label": "登入與連線", "n": 131, "complaints": 79, "share": 0.3669, "avg": 2.48, "neg_share": 0.5573, "rec": "背景登入保活、生物辨識快速登入、弱網自動重連", "desc": "頻繁被登出、重新登入、生物辨識失效，或一開 App 就卡在連線中——影響每天進場的第一步。", "quotes": [{"rating": 1, "platform": "App Store", "date": "2026-06-23", "text": "今天九點登入要掛單。結果⋯一直轉圈圈，就無法掛單賣，害我損失賣點差額"}, {"rating": 1, "platform": "App Store", "date": "2026-01-23", "text": "舊手機不友善。使用iPhone XR 手機會一直無法正常登入，即使登入 只要幾分鐘沒有打開就會讀取資訊錯誤，使用17 就可以正常使用，難道軟體只能支援新手機使用嗎"}], "impact": "占自家評論 37%、負評率 56%（嚴重度中高），最該優先止血。"}, {"label": "效能與穩定", "n": 55, "complaints": 42, "share": 0.1541, "avg": 2.36, "neg_share": 0.6182, "rec": "開盤尖峰壓測、行情推送與下單路徑優化、崩潰即時監控", "desc": "開盤尖峰下單卡頓、報價或選擇權跳動消失、閃退與當機，直接造成下單延誤與虧損。", "quotes": [{"rating": 4, "platform": "Google Play", "date": "2026-05-15", "text": "很好用，但人多時常當機"}, {"rating": 1, "platform": "App Store", "date": "2026-05-04", "text": "大當機。害死人"}], "impact": "占自家評論 15%、負評率 62%（嚴重度中高），需盡快處理。"}, {"label": "海外與複委託", "n": 66, "complaints": 23, "share": 0.1849, "avg": 3.58, "neg_share": 0.2879, "rec": "美股每檔成本與報酬率、股息再投入、複委託對帳", "desc": "美股複委託缺每檔成本與報酬率、股息再投入，海外資產資訊不完整。", "quotes": [{"rating": 1, "platform": "Google Play", "date": "2026-05-08", "text": "股票抽籤沒有中籤率"}, {"rating": 1, "platform": "App Store", "date": "2026-05-19", "text": "電池都快燒起來了。看個股票1個小時手機燙到沒辦法正常拿了 其他股票app都沒這問題 可以請你們改善嗎=="}], "impact": "占自家評論 18%、負評率 29%（嚴重度中），持續追蹤。"}], "strength": {"label": "介面與體驗", "praise": 44, "avg": 3.67, "quotes": [{"rating": 5, "platform": "Google Play", "date": "2026-03-05", "text": "介面流暢"}]}}}, "shared_pains": [{"label": "登入與連線", "desc": "頻繁被登出、重新登入、生物辨識失效，或一開 App 就卡在連線中——影響每天進場的第一步。", "shares": {"yuanta": 0.3412, "cathay": 0.3559, "sinopac": 0.3669}, "worst": "sinopac", "worst_name": "永豐金證券大戶", "hero_share": 0.3412}, {"label": "海外與複委託", "desc": "美股複委託缺每檔成本與報酬率、股息再投入，海外資產資訊不完整。", "shares": {"yuanta": 0.2677, "cathay": 0.2494, "sinopac": 0.1849}, "worst": "yuanta", "worst_name": "元大投資先生", "hero_share": 0.2677}, {"label": "效能與穩定", "desc": "開盤尖峰下單卡頓、報價或選擇權跳動消失、閃退與當機，直接造成下單延誤與虧損。", "shares": {"yuanta": 0.1864, "cathay": 0.1598, "sinopac": 0.1541}, "worst": "yuanta", "worst_name": "元大投資先生", "hero_share": 0.1864}], "learn_from": [{"rival_key": "sinopac", "rival_name": "永豐金證券大戶", "color": "#f08300", "label": "介面與體驗", "avg": 3.67, "note": "永豐金證券大戶 好評率 34%，亮點在「介面與體驗」（該主題 3.67★）——元大可參考其做法。", "quote": {"rating": 5, "platform": "Google Play", "date": "2026-03-05", "text": "介面流暢"}}, {"rival_key": "cathay", "rival_name": "國泰證券", "color": "#00a040", "label": "介面與體驗", "avg": 2.79, "note": "國泰證券 好評率 12%，亮點在「介面與體驗」（該主題 2.79★）——元大可參考其做法。", "quote": {"rating": 4, "platform": "App Store", "date": "2026-06-08", "text": "希望新增條件單、到價提醒、期權相關功能。雖然隨身證券app可以做到這兩項，但介面的外觀跟操作簡單程度都輸本app一大截 既然在開戶的時候是推這個app給用戶，就應該把各種功能一站式整合，而非分散在不同的地方，希望能新增上述幾項功能，這個程式的介面真的很漂亮！希望功能也能跟上"}}], "opportunities": [{"id": "海外與複委託", "label": "海外與複委託", "hero_share": 0.2677, "hero_avg": 2.8, "rival_key": "sinopac", "rival_name": "永豐金證券大戶", "rival_share": 0.1849, "rival_avg": 3.58, "gap": 0.0828, "rec": "美股每檔成本與報酬率、股息再投入、複委託對帳", "insight": "「海外與複委託」占元大評論 27%，高出 永豐金證券大戶 8 個百分點；該主題元大 2.8★ vs 永豐金證券大戶 3.58★。"}, {"id": "庫存與損益", "label": "庫存與損益", "hero_share": 0.1024, "hero_avg": 2.59, "rival_key": "sinopac", "rival_name": "永豐金證券大戶", "rival_share": 0.042, "rival_avg": 3.6, "gap": 0.0604, "rec": "庫存市值／成本／損益即時且正確、跨市場總資產總覽", "insight": "「庫存與損益」占元大評論 10%，高出 永豐金證券大戶 6 個百分點；該主題元大 2.59★ vs 永豐金證券大戶 3.6★。"}, {"id": "效能與穩定", "label": "效能與穩定", "hero_share": 0.1864, "hero_avg": 2.13, "rival_key": "sinopac", "rival_name": "永豐金證券大戶", "rival_share": 0.1541, "rival_avg": 2.36, "gap": 0.0323, "rec": "開盤尖峰壓測、行情推送與下單路徑優化、崩潰即時監控", "insight": "「效能與穩定」占元大評論 19%，高出 永豐金證券大戶 3 個百分點；該主題元大 2.13★ vs 永豐金證券大戶 2.36★。"}], "roadmap": [{"horizon": "quick", "label": "體驗還原與流程防呆", "window": "1 個月內", "items": [{"label": "庫存與損益", "rec": "庫存市值／成本／損益即時且正確、跨市場總資產總覽"}, {"label": "介面與體驗", "rec": "簡化下單與庫存動線、漲跌紅綠標示、自選↔庫存快速切換"}]}, {"horizon": "mid", "label": "系統效能與數據穩定", "window": "3 個月內", "items": [{"label": "登入與連線", "rec": "背景登入保活、生物辨識快速登入、弱網自動重連"}, {"label": "效能與穩定", "rec": "開盤尖峰壓測、行情推送與下單路徑優化、崩潰即時監控"}]}, {"horizon": "long", "label": "功能超車與定位收割", "window": "6 個月內", "items": [{"label": "海外與複委託", "rec": "美股每檔成本與報酬率、股息再投入、複委託對帳"}]}]}, "examples": {"登入與連線": [{"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-05-17", "text": "無法開app。無法打開==一直跑出無法完成初始作業重新啟動app"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-05-17", "text": "無法開app。無法打開==一直跑出無法完成初始作業重新啟動app"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-05-17", "text": "無法開app。無法打開==一直跑出無法完成初始作業重新啟動app"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-05-17", "text": "無法開app。無法打開==一直跑出無法完成初始作業重新啟動app"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-05-17", "text": "無法開app。無法打開==一直跑出無法完成初始作業重新啟動app"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-05-17", "text": "無法開app。無法打開==一直跑出無法完成初始作業重新啟動app"}], "海外與複委託": [{"app": "yuanta", "rating": 3, "intent": "request", "date": "2026-01-28", "text": "股票明細統計數據可以多一點嗎"}, {"app": "sinopac", "rating": 1, "intent": "request", "date": "2026-05-08", "text": "股票抽籤沒有中籤率"}, {"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-06-04", "text": "祝自己在大戶投股票抽籤🀄️🀄️🀄️。好運相隨～"}, {"app": "cathay", "rating": 1, "intent": "complaint", "date": "2026-06-12", "text": "股票都綠綠的希望可以修正顯示。股票都綠綠的希望可以修正顯示"}, {"app": "sinopac", "rating": 5, "intent": "other", "date": "2026-05-14", "text": "股票小白也容易上手。希望可以抽到想要的股票"}, {"app": "yuanta", "rating": 4, "intent": "request", "date": "2026-01-28", "text": "添加自選股票，希望有取消關注股票功能！有儲存的股票能顯示打勾，取消打勾就能刪除關注的股票～拜託了"}], "效能與穩定": [{"app": "cathay", "rating": 1, "intent": "complaint", "date": "2026-05-21", "text": "當機頻繁"}, {"app": "sinopac", "rating": 4, "intent": "complaint", "date": "2026-05-15", "text": "很好用，但人多時常當機"}, {"app": "sinopac", "rating": 1, "intent": "complaint", "date": "2026-05-04", "text": "大當機。害死人"}, {"app": "cathay", "rating": 1, "intent": "complaint", "date": "2026-06-13", "text": "直接當機不給買了 爛"}, {"app": "cathay", "rating": 1, "intent": "complaint", "date": "2026-04-13", "text": "又當機是怎樣？。？"}, {"app": "sinopac", "rating": 1, "intent": "complaint", "date": "2026-01-16", "text": "更新看k線一直跳。爛"}], "介面與體驗": [{"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-01-26", "text": "介面。介面讓人很難懂"}, {"app": "yuanta", "rating": 1, "intent": "praise", "date": "2026-01-08", "text": "介面就是一坨"}, {"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-03-05", "text": "介面流暢"}, {"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-05-13", "text": "好操作的介面。好操作的介面"}, {"app": "yuanta", "rating": 1, "intent": "praise", "date": "2026-04-22", "text": "操作介面真難用"}, {"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-01-06", "text": "介面容易操作，使用方便"}], "庫存與損益": [{"app": "sinopac", "rating": 4, "intent": "complaint", "date": "2026-04-20", "text": "點自選無法跳回庫存"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-01-30", "text": "為什麼最近庫存報價都不能用"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-01-30", "text": "改版後，庫存報價功能不能用了!"}, {"app": "yuanta", "rating": 2, "intent": "complaint", "date": "2026-01-30", "text": "庫存報價進不去啊！"}, {"app": "yuanta", "rating": 1, "intent": "complaint", "date": "2026-01-29", "text": "庫存報價打不開"}, {"app": "cathay", "rating": 4, "intent": "other", "date": "2026-01-28", "text": "台股庫存排序功能很好用，但美股庫存沒有。"}], "好用・便利": [{"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-01-12", "text": "好。好用一直用"}, {"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-05-27", "text": "非常好用"}, {"app": "yuanta", "rating": 5, "intent": "praise", "date": "2026-02-10", "text": "真的非常好用"}, {"app": "yuanta", "rating": 5, "intent": "praise", "date": "2026-02-02", "text": "好用多了"}, {"app": "cathay", "rating": 4, "intent": "praise", "date": "2026-04-12", "text": "好用沒 時間長用"}, {"app": "sinopac", "rating": 5, "intent": "praise", "date": "2026-03-09", "text": "好用一直用。推推"}]}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('payload').textContent);
+const IC = {complaint:'#ef4444',request:'#f59e0b',praise:'#22c55e',other:'#7c8aa5'};
+const IZH = DATA.meta.intent_zh;
+const ORDER = DATA.meta.apps_order;
+const HERO = DATA.meta.hero;
+const INS = DATA.insights;
+const TREND = Object.fromEntries((INS.rating_trend.cards||[]).map(c=>[c.key,c]));
+Chart.defaults.color='#94a3c0'; Chart.defaults.font.family='"Noto Sans TC","PingFang TC",sans-serif';
+Chart.defaults.borderColor='#26304a';
+const pct=x=>(x*100).toFixed(0)+'%';
+const stars=n=>'★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n);
+const revHTML=r=>`<div class="rev"><div class="meta"><span class="stars">${stars(r.rating)}</span><span>${r.platform||''}</span><span>${r.date||''}</span></div>${r.text}</div>`;
+
+/* KPI cards */
+(function(){
+  const el=document.getElementById('kpis');
+  ORDER.forEach(k=>{
+    const a=DATA.apps[k], t=TREND[k]||{};
+    const col=t.direction==='上升'?IC.praise:(t.direction==='下滑'?IC.complaint:IC.other);
+    const arrow=t.direction==='上升'?'▲':(t.direction==='下滑'?'▼':'▬');
+    const trend=t.delta!=null?`<span class="trend" style="color:${col}">${arrow} ${t.delta>=0?'+':''}${t.delta} 近半年</span>`:'';
+    el.insertAdjacentHTML('beforeend',`
+      <div class="card kpi"><span class="bar" style="background:${a.color}"></span>
+        <div class="nm">${a.name}${a.hero?' ⭐':''}</div><div class="vd">${a.vendor}</div>
+        <div><span class="big">${a.avg_rating}</span> <span class="star">★</span>${trend}</div>
+        <div class="row"><div>評論數<b>${a.n}</b></div>
+          <div>抱怨<b style="color:${IC.complaint}">${pct(a.intents.complaint.share)}</b></div>
+          <div>好評<b style="color:${IC.praise}">${pct(a.intents.praise.share)}</b></div></div>
+      </div>`);
+  });
+})();
+
+/* findings */
+(function(){const ol=document.getElementById('findings');
+  DATA.headlines.forEach(h=>{const li=document.createElement('li');li.textContent=h;ol.appendChild(li);});})();
+
+/* rating distribution */
+new Chart(document.getElementById('ratingChart'),{type:'bar',
+  data:{labels:['1★','2★','3★','4★','5★'],datasets:ORDER.map(k=>{const a=DATA.apps[k];const tot=Object.values(a.rating_dist).reduce((x,y)=>x+y,0);
+    return {label:a.name,backgroundColor:a.color,borderRadius:5,data:[1,2,3,4,5].map(r=>+(100*a.rating_dist[r]/tot).toFixed(1))};})},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}%`}}},
+    scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'#1d2740'}},x:{grid:{display:false}}}}});
+
+/* monthly trend */
+(function(){const months=[...new Set(ORDER.flatMap(k=>DATA.apps[k].monthly.map(m=>m.month)))].sort();
+  new Chart(document.getElementById('trendChart'),{type:'line',
+    data:{labels:months,datasets:ORDER.map(k=>{const a=DATA.apps[k];const byM=Object.fromEntries(a.monthly.map(m=>[m.month,m.avg]));
+      return {label:a.name,borderColor:a.color,backgroundColor:a.color,tension:.3,spanGaps:true,pointRadius:3,data:months.map(m=>byM[m]??null)};})},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+      scales:{y:{min:1,max:5,title:{display:true,text:'平均評分'},grid:{color:'#1d2740'}},x:{grid:{display:false}}}}});})();
+
+/* 元大核心痛點詳析 */
+(function(){const wrap=document.getElementById('yuantaPain');
+  INS.yuanta_pain.forEach(p=>wrap.insertAdjacentHTML('beforeend',`
+    <div class="card">
+      <div class="ttl"><span class="chip" style="background:${IC.complaint}"></span>${p.label}<span class="pct">${p.complaints} 則抱怨</span></div>
+      <div class="desc">${p.desc}</div>
+      <div class="impact">${p.impact}</div>
+      ${(p.quotes||[]).map(revHTML).join('')}
+      <div class="rec"><b>建議方向：</b>${p.rec}</div>
+    </div>`));})();
+
+/* 三家共同痛點 */
+(function(){const wrap=document.getElementById('sharedPains');
+  INS.shared_pains.forEach(s=>{
+    const bars=ORDER.map(k=>`<div class="sb"><span class="lab">${DATA.apps[k].name.slice(0,4)}</span>
+      <span class="track"><i style="width:${Math.min(100,s.shares[k]*100*2.5)}%;background:${DATA.apps[k].color}"></i></span>
+      <span class="val">${pct(s.shares[k])}</span></div>`).join('');
+    wrap.insertAdjacentHTML('beforeend',`
+      <div class="card"><div class="ttl">⚡ ${s.label}</div>
+        <div class="desc">${s.desc}</div>
+        <div class="sharebars">${bars}</div>
+        <div class="impact">三家都受影響，最嚴重：<b style="color:var(--text)">${s.worst_name}</b>。</div>
+      </div>`);
+  });})();
+
+/* 競品現況對照 */
+(function(){const wrap=document.getElementById('competitorPosture');
+  Object.entries(INS.competitor_deep).forEach(([k,d])=>{
+    const a=DATA.apps[k];
+    const seg=`<div class="seg">
+      <i style="width:${d.complaint_share*100}%;background:${IC.complaint}"></i>
+      <i style="width:${(1-d.complaint_share-d.praise_share)*100}%;background:${IC.other}"></i>
+      <i style="width:${d.praise_share*100}%;background:${IC.praise}"></i></div>`;
+    const win = d.strength?`<div class="win">✅ 贏在「<b>${d.strength.label}</b>」（${d.strength.avg}★）${d.strength.quotes&&d.strength.quotes[0]?revHTML(d.strength.quotes[0]):''}</div>`:'';
+    const lose = (d.pains&&d.pains[0])?`<div class="lose">⚠️ 主要抱怨「<b>${d.pains[0].label}</b>」${d.pains[0].quotes&&d.pains[0].quotes[0]?revHTML(d.pains[0].quotes[0]):''}</div>`:'';
+    wrap.insertAdjacentHTML('beforeend',`
+      <div class="card posture"><span class="bar"></span>
+        <div class="ttl"><span class="chip" style="background:${a.color}"></span>${d.name}<span class="pct">${d.vendor}</span></div>
+        <div><span class="big">${d.avg}</span> <span class="star" style="color:var(--muted)">★ 平均</span></div>
+        ${seg}
+        <div class="impact">抱怨 ${pct(d.complaint_share)}　好評 ${pct(d.praise_share)}</div>
+        ${win}${lose}
+      </div>`);
+  });})();
+
+/* 可學習的優點 */
+(function(){const wrap=document.getElementById('learnFrom');
+  INS.learn_from.forEach(l=>wrap.insertAdjacentHTML('beforeend',`
+    <div class="learn"><span class="tg" style="background:${l.color}22;color:${l.color}">${l.rival_name.slice(0,2)}</span>
+      <div>${l.note}${l.quote?revHTML(l.quote):''}</div></div>`));})();
+
+/* 機會點 */
+(function(){const wrap=document.getElementById('opps'); const hc=DATA.apps[HERO].color;
+  INS.opportunities.forEach(o=>{const rc=DATA.apps[o.rival_key].color;
+    wrap.insertAdjacentHTML('beforeend',`
+      <div class="card opp">
+        <div class="ttl"><span class="chip" style="background:${IC.request}"></span>${o.label}</div>
+        <div class="desc">${o.insight}</div>
+        <div class="vs"><b style="color:${hc}">元大 ${pct(o.hero_share)}${o.hero_avg?` · ${o.hero_avg}★`:''}</b>　vs <b style="color:${rc}">${o.rival_name} ${pct(o.rival_share)}${o.rival_avg?` · ${o.rival_avg}★`:''}</b></div>
+        <div class="rec"><b>機會點：</b>${o.rec}</div>
+      </div>`);});})();
+
+/* 路線圖 */
+(function(){const wrap=document.getElementById('roadmap');
+  INS.roadmap.forEach((b,i)=>wrap.insertAdjacentHTML('beforeend',`
+    <div class="card road"><div class="num0">${i+1}</div><div class="win0">${b.window}</div><div class="hl">${b.label}</div>
+      <ul>${b.items.map(it=>`<li><b>${it.label}</b>：${it.rec}</li>`).join('')}</ul></div>`));})();
+
+/* 附錄矩陣 */
+(function(){const tb=document.getElementById('themeTable');
+  const themes=DATA.themes.slice().sort((a,b)=>b.by_app[HERO].share-a.by_app[HERO].share);
+  themes.forEach(t=>{
+    const shares=ORDER.map(k=>t.by_app[k].share), maxShare=Math.max(...shares), heroShare=t.by_app[HERO].share;
+    const rivalMin=Math.min(...ORDER.filter(k=>k!==HERO).map(k=>t.by_app[k].share));
+    const heroWorst=heroShare>=maxShare-1e-9, gap=heroShare-rivalMin;
+    const cell=k=>{const s=t.by_app[k].share,hot=(k===HERO&&heroWorst);
+      return `<td class="num ${hot?'hero-max':''}"><b style="color:${k===HERO?DATA.apps[k].color:'var(--text)'}">${pct(s)}</b></td>`;};
+    const gapCell=(heroWorst&&gap>0.01)?`<td class="num gap-pos">+${(gap*100).toFixed(0)}pt</td>`:`<td class="num" style="color:var(--muted)">—</td>`;
+    tb.insertAdjacentHTML('beforeend',`<tr>
+      <td><b>${t.label}</b> <span class="pill" style="background:${IC[t.dom_intent]}22;color:${IC[t.dom_intent]}">${t.dom_intent_zh}</span></td>
+      ${cell('yuanta')}${cell('cathay')}${cell('sinopac')}
+      <td class="num">${t.by_app[HERO].avg??'—'}</td>
+      <td class="num">${pct(t.neg_share)}</td>${gapCell}</tr>`);
+  });})();
+</script>
+</body>
+</html>
