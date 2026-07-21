@@ -2,8 +2,10 @@
 .wrangler/
 __pycache__/
 *.pyc
-review-crawler-agent/.venv/
-review-crawler-agent/.venv_win/
-review-crawler-agent/__pycache__/
-review-crawler-agent/*.log
-review-crawler-agent/.appstore_ids_cache.json
+crawler/.venv/
+crawler/.venv_win/
+crawler/__pycache__/
+crawler/*.log
+crawler/.appstore_ids_cache.json
+.vscode/
+

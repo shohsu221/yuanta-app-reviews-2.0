@@ -28,7 +28,7 @@ echo "=================================================="
 prepare_build_dir() {
     mkdir -p "$BUILD_DIR"
     rsync -av --delete --delete-excluded \
-        --exclude 'review-crawler-agent/' \
+        --exclude 'crawler/' \
         --exclude '.wrangler/' \
         --exclude 'deploy.sh' \
         --exclude 'deploy-site.sh' \

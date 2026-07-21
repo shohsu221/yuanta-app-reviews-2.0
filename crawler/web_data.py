@@ -20,58 +20,58 @@ import config
 # Deployed file that the crawler now maintains end-to-end.
 WEB_HTML = "Yuanta_Reviews_Web.html"
 
-# (brand label used inside Yuanta_Reviews_Web.html, Markdown source file, CSS token)
+# (brand label used inside Yuanta_Reviews_Web.html, short name, CSS token)
 BRANDS = [
-    ("元大投資先生", "Yuanta_App_Reviews.md", "yuanta"),
-    ("永豐大戶投", "SinoPac_App_Reviews.md", "sinopac"),
-    ("國泰證券", "Cathay_App_Reviews.md", "cathay"),
+    ("元大投資先生", "yuanta", "yuanta"),
+    ("永豐大戶投", "sinopac", "sinopac"),
+    ("國泰證券", "cathay", "cathay"),
 ]
 ORDER = [css for _, _, css in BRANDS]
 
-_ROW_RE = re.compile(r"^\|\s*\d+\s*\|")
 
-
-def _parse_reviews(brand: str, filename: str) -> list[dict]:
-    """Parse one brand's detail table into review dicts.
-
-    Column layout (see md_writer._format_row):
-      | 序號 | 時間 | 平台 | 用戶 | 評分 | 版本 | 評論標題與內容 | 客服回覆 |
-    md_writer already replaces newlines with spaces and "|" with "｜", so a naive
-    split on "|" is safe.
-    """
+def _parse_reviews(brand: str, short_name: str) -> list[dict]:
+    """從該 App 的所有季度 JSON 檔案中載入評論。"""
     rows: list[dict] = []
-    path = Path(config.BASE_DIR) / filename
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not _ROW_RE.match(line):
-            continue
-        parts = line.split("|")
-        if len(parts) < 9:
-            continue
+    comments_dir = Path(config.COMMENTS_DIR)
+    if not comments_dir.exists():
+        return []
+
+    brand_prefix = f"{short_name.lower()}_"
+    for file in comments_dir.glob(f"{brand_prefix}*.json"):
         try:
-            dt = datetime.strptime(parts[2].strip(), "%Y-%m-%d %H:%M")
-        except ValueError:
-            continue
-        rating_match = re.search(r"\((\d)\)", parts[5])
-        if not rating_match:
-            continue
-        rows.append({
-            "brand": brand,
-            "date": parts[2].strip(),
-            "platform": parts[3].strip(),
-            "version": parts[6].strip(),
-            "user": parts[4].strip(),
-            "rating": int(rating_match.group(1)),
-            "text": parts[7].strip(),
-            "_dt": dt,
-        })
+            with open(file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                for item in data:
+                    # 使用 naive datetime 以維持與舊代碼的相容性
+                    dt = datetime.fromisoformat(item["date"]).replace(tzinfo=None)
+                    
+                    title = item.get("title")
+                    content = item.get("content") or ""
+                    if title:
+                        text = f"**【{title}】** {content}"
+                    else:
+                        text = content
+
+                    rows.append({
+                        "brand": brand,
+                        "date": dt.strftime("%Y-%m-%d %H:%M"),
+                        "platform": item["platform"],
+                        "version": item["version"],
+                        "user": item["username"],
+                        "rating": int(item["rating"]),
+                        "text": text,
+                        "_dt": dt,
+                    })
+        except Exception as e:
+            pass
     return rows
 
 
 def load_reviews() -> list[dict]:
     """All reviews across brands, newest-first (the order Web.html renders)."""
     reviews: list[dict] = []
-    for brand, filename, _ in BRANDS:
-        reviews.extend(_parse_reviews(brand, filename))
+    for brand, short_name, _ in BRANDS:
+        reviews.extend(_parse_reviews(brand, short_name))
     reviews.sort(key=lambda r: r["_dt"], reverse=True)
     return reviews
 

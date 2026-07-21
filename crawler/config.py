@@ -8,12 +8,13 @@ import json
 # agent/ 的上一層，即 "Yuanta App Reviews/" 資料夾
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
+COMMENTS_DIR = os.path.join(BASE_DIR, "data", "comments")
 
 # App Store ID 快取（自動偵測後儲存）
 IDS_CACHE_FILE = os.path.join(AGENT_DIR, ".appstore_ids_cache.json")
 
 # ── 爬蟲設定 ─────────────────────────────────────────────────
-# 每次爬取的最新評論數（雙平台各自抓取 N 則，取其中最新且未出現在 MD 的）
+# 每次爬取的最新評論數（雙平台各自抓取 N 則，取其中最新且未出現在 JSON 的）
 FETCH_COUNT = 100
 
 # 評論寫入日期範圍。
@@ -67,7 +68,6 @@ _APP_CONFIGS_BASE = [
         "gplay_id": "com.yuanta.android.nexus",  # 已確認：投資先生 App
         "appstore_id": "1382114621",              # 已確認
         "appstore_search_term": "投資先生 元大",
-        "output_file": os.path.join(BASE_DIR, "Yuanta_App_Reviews.md"),
     },
     {
         "name": "永豐大戶投",
@@ -75,7 +75,6 @@ _APP_CONFIGS_BASE = [
         "gplay_id": "com.sinopac.ismartstock",
         "appstore_id": "1551600164",       # 已確認：永豐金證券大戶投 – 智能籌碼權威升級
         "appstore_search_term": "永豐金證券大戶投",
-        "output_file": os.path.join(BASE_DIR, "SinoPac_App_Reviews.md"),
     },
     {
         "name": "國泰證券",
@@ -83,7 +82,6 @@ _APP_CONFIGS_BASE = [
         "gplay_id": "com.cathaysec.eservice",
         "appstore_id": "1228503534",       # 已確認
         "appstore_search_term": "國泰證券",
-        "output_file": os.path.join(BASE_DIR, "Cathay_App_Reviews.md"),
     },
 ]
 

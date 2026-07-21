@@ -11,13 +11,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$SCRIPT_DIR/.venv"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+VENV_DIR="$ROOT_DIR/.venv"
 REQUIREMENTS="$SCRIPT_DIR/requirements.txt"
-AGENT_SCRIPT="$SCRIPT_DIR/scraper_agent.py"
+MAIN_SCRIPT="$ROOT_DIR/main.py"
 
 echo "=================================================="
-echo "  三大券商 App 評論爬蟲 Agent"
-echo "  工作目錄：$SCRIPT_DIR"
+echo "  三大券商 App 評論爬蟲系統"
+echo "  工作目錄：$ROOT_DIR"
 echo "  自動部署：預設啟用（可用 --no-deploy 或 YUANTA_AUTO_DEPLOY=0 關閉）"
 echo "=================================================="
 
@@ -34,7 +35,7 @@ source "$VENV_DIR/bin/activate"
 echo "📥 確認依賴套件..."
 pip install -q -r "$REQUIREMENTS"
 
-# ── 執行 Agent ────────────────────────────────────────────────
+# ── 執行 ────────────────────────────────────────────────
 echo ""
 
 # 解析傳入的參數
@@ -42,8 +43,8 @@ ARGS=("$@")
 if [ ${#ARGS[@]} -eq 0 ]; then
     # 無引數 → 立即執行一次
     echo "▶  立即執行模式（--run-now）"
-    python3 "$AGENT_SCRIPT" --run-now
+    python3 "$MAIN_SCRIPT" --run-now
 else
-    echo "▶  執行：python3 scraper_agent.py ${ARGS[*]}"
-    python3 "$AGENT_SCRIPT" "${ARGS[@]}"
+    echo "▶  執行：python3 main.py ${ARGS[*]}"
+    python3 "$MAIN_SCRIPT" "${ARGS[@]}"
 fi

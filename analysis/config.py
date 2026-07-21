@@ -21,15 +21,15 @@ USERDICT_FILE = ANALYSIS_DIR / "userdict_zh.txt"
 # --- The three apps under comparison -----------------------------------------
 # key:   short id used internally / in the site
 # name:  display name (zh)
-# file:  source markdown produced by review-crawler-agent
+# file_prefix: prefix for the quarterly JSON files in data/comments/
 # color: brand-ish accent used in the dashboard
 APPS = [
     {"key": "yuanta",  "name": "元大投資先生", "vendor": "元大證券",
-     "file": "Yuanta_App_Reviews.md",  "color": "#e60012", "hero": True},
+     "file_prefix": "yuanta",  "color": "#e60012", "hero": True},
     {"key": "cathay",  "name": "國泰證券",     "vendor": "國泰證券",
-     "file": "Cathay_App_Reviews.md",  "color": "#00a040", "hero": False},
+     "file_prefix": "cathay",  "color": "#00a040", "hero": False},
     {"key": "sinopac", "name": "永豐金證券大戶", "vendor": "永豐金證券",
-     "file": "SinoPac_App_Reviews.md", "color": "#f08300", "hero": False},
+     "file_prefix": "sinopac", "color": "#f08300", "hero": False},
 ]
 
 APP_BY_KEY = {a["key"]: a for a in APPS}
