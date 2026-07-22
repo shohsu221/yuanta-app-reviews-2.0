@@ -20,12 +20,10 @@ CRAWLER_DIR = os.path.join(ROOT_DIR, "crawler")
 if CRAWLER_DIR not in sys.path:
     sys.path.insert(0, CRAWLER_DIR)
 
-import config
-import crawler_runner
-import web_sync
-import validate_reviews
-import validate_dashboard
-import notifier
+from crawler.utils import config, notifier
+from crawler import crawler_runner
+from crawler.sync import web_sync
+from crawler.validation import validate_reviews, validate_dashboard
 
 # 確保 Windows 終端機能支援 UTF-8 輸出
 if hasattr(sys.stdout, 'reconfigure'):
@@ -135,17 +133,17 @@ def deploy_site():
     這通常被用在 Github Pages / Cloudflare Pages 發布更新。
     """
     deploy_command = config.DEPLOY_COMMAND
-    deploy_script = os.path.join(config.BASE_DIR, "deploy.sh")
+    deploy_script = os.path.join(config.BASE_DIR, "deploy", "deploy.sh")
 
     if deploy_command:
         cmd = shlex.split(deploy_command)
         logger.info(f"自動部署：執行 YUANTA_DEPLOY_COMMAND")
-    elif os.path.isfile(deploy_script) and os.access(deploy_script, os.X_OK):
+    elif os.path.isfile(deploy_script):
         cmd = [deploy_script]
         logger.info(f"自動部署：執行 {deploy_script}")
     else:
         logger.info(
-            "自動部署略過：未設定 YUANTA_DEPLOY_COMMAND，且未找到可執行的 deploy.sh"
+            "自動部署略過：未設定 YUANTA_DEPLOY_COMMAND，且未找到可執行的 deploy/deploy.sh"
         )
         return False
 

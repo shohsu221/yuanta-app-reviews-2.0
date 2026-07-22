@@ -9,7 +9,7 @@ import subprocess
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
-from models import Review
+from crawler.utils.models import Review
 
 logger = logging.getLogger(__name__)
 

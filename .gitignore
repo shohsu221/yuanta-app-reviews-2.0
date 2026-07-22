@@ -1,11 +1,27 @@
+# Python Virtual Environments
 .venv/
-.wrangler/
-__pycache__/
-*.pyc
 crawler/.venv/
 crawler/.venv_win/
+
+# Cache & Compiled
+__pycache__/
+*.pyc
 crawler/__pycache__/
+experiments/__pycache__/
+
+# Cloudflare & Logs
+.wrangler/
 crawler/*.log
 crawler/.appstore_ids_cache.json
-.vscode/
 
+# IDE & OS
+.vscode/
+.DS_Store
+
+# Temporary Test Files
+test.py
+*.csv
+
+# Static Build Outputs & Archive
+site/
+.archive/

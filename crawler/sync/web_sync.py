@@ -20,8 +20,8 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-import config
-import web_data
+from crawler.utils import config
+from crawler.sync import web_data
 
 logger = logging.getLogger("scraper_agent")
 

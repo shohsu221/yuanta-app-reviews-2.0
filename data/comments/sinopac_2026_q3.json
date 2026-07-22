@@ -20,8 +20,8 @@
     "title": null,
     "content": "登入要OTP驗證但是也沒地方讓我輸入也沒有地方說可以按我要驗證，我到底要怎麼登入APP",
     "raw_id": "6021d63d-4e1d-4b6f-ae94-fd9e2a9700d3",
-    "reply_content": null,
-    "reply_date": null
+    "reply_content": "您好，十分抱歉造成您使用不便，若仍有遇到問題煩請協助提供身分證字號與異常畫面，回寄至dawhotou.app@sinopac.com，謝謝您。",
+    "reply_date": "2026-07-22T23:06:21+08:00"
   },
   {
     "platform": "App Store",
@@ -108,6 +108,18 @@
     "reply_date": "2026-07-17T18:44:30+08:00"
   },
   {
+    "platform": "Google Play",
+    "date": "2026-07-14T17:15:16+08:00",
+    "username": "rachel lin",
+    "rating": 3,
+    "version": "1.6.8",
+    "title": null,
+    "content": "介面對新手不是太友善",
+    "raw_id": "0f9bfef1-c757-48f3-a85c-be361ca21967",
+    "reply_content": "您好，十分抱歉造成您使用體驗不佳，若有任何建議歡迎留言讓我們知道，開發團隊會持續努力優化APP，謝謝您。",
+    "reply_date": "2026-07-17T18:44:41+08:00"
+  },
+  {
     "platform": "App Store",
     "date": "2026-07-14T13:16:13+08:00",
     "username": "荳霏",
@@ -121,6 +133,18 @@
   },
   {
     "platform": "Google Play",
+    "date": "2026-07-13T20:09:07+08:00",
+    "username": "歐素合",
+    "rating": 5,
+    "version": "1.6.10",
+    "title": null,
+    "content": "訊息快速",
+    "raw_id": "26660a4a-d70f-4399-b9f7-79eade8100d0",
+    "reply_content": "您好，十分感謝您的愛用與支持，也歡迎多多推薦親友一同來使用喔，謝謝您。",
+    "reply_date": "2026-07-17T18:45:06+08:00"
+  },
+  {
+    "platform": "Google Play",
     "date": "2026-07-10T19:31:00+08:00",
     "username": "HSIN-YI",
     "rating": 4,
@@ -128,8 +152,8 @@
     "title": null,
     "content": "敲碗：希望有背景不是黑色的選項。",
     "raw_id": "",
-    "reply_content": null,
-    "reply_date": null
+    "reply_content": "您好，十分感謝您的愛用與回饋，您的建議開發團隊會納入未來優化評估方向，謝謝您。",
+    "reply_date": "2026-07-17T18:45:35+08:00"
   },
   {
     "platform": "Google Play",
@@ -140,8 +164,8 @@
     "title": null,
     "content": "好用",
     "raw_id": "",
-    "reply_content": null,
-    "reply_date": null
+    "reply_content": "您好，十分感謝您的愛用與支持，也歡迎多多推薦親友一同來使用喔，謝謝您。",
+    "reply_date": "2026-07-17T18:45:03+08:00"
   },
   {
     "platform": "Google Play",

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Optional
 from datetime import datetime
 
-import config
+from crawler.utils import config
 
 
 def _iter_review_keys(file_path: Path):

@@ -10,8 +10,8 @@ import ast
 import re
 from pathlib import Path
 
-import config
-import web_data
+from crawler.utils import config
+from crawler.sync import web_data
 
 WEB_HTML = web_data.WEB_HTML
 

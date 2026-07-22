@@ -11,38 +11,51 @@
 ```text
 輿論平台/
 ├── 📄 README.md                       # 本說明文件
-├── 📄 main.py                         # 統一任務調用與協調器 (入口程式)
-├── 📄 Yuanta_Reviews_Web.html        # 【手作版】前端網頁 (Apple 設計風格)
-├── 📄 deploy.sh                       # 【手作版】部署至 Cloudflare Pages 腳本
-├── 📄 deploy-site.sh                  # 【ML版】部署至 Cloudflare Pages 腳本
+├── 📄 TODO.md                         # 重構與維護待辦清單
+├── 📄 main.py                         # 統一任務調用與協調器 (主入口程式)
+├── 📄 requirements.txt               # 主方法 Python 核心依賴
 │
-├── 📁 data/                           # 原始評論資料庫
-│   └── 📁 comments/                   # 按季度劃分的 PEP8 JSON 檔案路徑
-│       ├── yuanta_2026_q1.json        # 元大 2026 第一季評論
-│       ├── yuanta_2026_q2.json        # 元大 2026 第二季評論
-│       └── ...                        # （永豐大戶投、國泰證券依此類推）
+├── 📁 web/                            # 【主方法】前端網頁與靜態資源模組
+│   ├── 📄 Yuanta_Reviews_Web.html     # 手作版前端網頁 (Apple 設計風格)
+│   └── 📄 _redirects                  # Cloudflare Pages 重導向規則
+│
+├── 📁 deploy/                         # 【主方法】部署與運維指令目錄
+│   └── 📄 deploy.sh                   # 部署至 Cloudflare Pages 腳本
 │
 ├── 📁 crawler/                        # 數據爬蟲與資料庫引擎套件
-│   ├── crawler_runner.py              # 雙平台爬蟲核心引擎 (純 Engine Library)
-│   ├── web_data.py                    # 載入 JSON 資料庫並計算統計指標 (SSOT)
-│   ├── web_sync.py                    # 將新數據同步至手作版 HTML 的正則替換程式
-│   ├── validate_reviews.py            # 資料庫去重校驗防呆程式
-│   ├── validate_dashboard.py          # 驗證網頁指標與資料庫一致性的校驗程式
-│   ├── run_crawler.sh                 # 呼叫 main.py 執行的一鍵啟動腳本
-│   └── requirements.txt               # 爬蟲與引擎依賴套件
+│   ├── 📄 crawler_runner.py              # 爬蟲進入點核心引擎
+│   ├── 📁 scrapers/                   # 雙平台數據抓取模組 (gplay / appstore)
+│   ├── 📁 sync/                       # JSON 指標計算 (web_data) 與網頁同步 (web_sync)
+│   ├── 📁 validation/                 # 評論去重與網頁指標防呆校驗模組
+│   ├── 📁 utils/                      # 全域設定 (config)、資料模型與通知器
+│   └── 📁 scheduler/                  # macOS 排程輔助腳本與 plist
 │
-├── 📁 analysis/                       # NLP 與 機器學習分析模組
+├── 📁 data/                           # 原始評論資料庫
+│   └── 📁 comments/                   # 按季度劃分的 JSON 檔案
+│
+├── 📁 docs/                           # 專案文檔、分析報告與歷史日誌
+│   ├── 📄 Yuanta_Reviews_Comparison_Q1_vs_Q2_2026.md
+│   ├── 📄 three_expert_analysis_report.md
+│   ├── 📄 UXR.md
+│   ├── 📄 ROLLBACK.md
+│   └── 📄 DEVLOG.md
+│
+├── 📁 experiments/                    # 【試驗方法】NLP 與 機器學習分析模組 (原 analysis/)
 │   ├── parse_reviews.py               # 解析 JSON 資料庫轉為 DataFrame
-│   ├── text_zh.py                     # 中文斷詞與停用詞過濾 (jieba)
-│   ├── themes.py                      # TF-IDF + NMF 主題模型分析
-│   ├── intent.py                      # 弱監督意圖分類模型 (Logistic Regression)
 │   ├── build_site.py                  # 執行分析並渲染新版網頁的主入口
-│   ├── templates/                     # 網頁 Jinja2 模板
+│   ├── deploy-site.sh                 # 試驗網頁部署腳本
 │   └── requirements.txt               # 分析管線依賴套件
 │
-└── 📁 site/                           # 【ML版】輸出目錄
-    ├── index.html                     # 自動生成的新版分析儀表板 (深色主題)
-    └── data.json                      # 結構化輿情分析 JSON 數據
+├── 📁 functions/                      # Cloudflare Pages 雲端函數
+│   └── 📁 api/
+│       └── expert.js                  # 專家分析 API
+│
+├── 📁 .agents/                        # AI 協作代理人專區
+│   ├── lead-applied-scientist-persona.md
+│   └── 📁 skills/
+│       └── lead_marketing_strategist_agent_skill.md
+│
+└── 📁 .archive/                       # 舊版與已停用程式碼封存區
 ```
 
 ---

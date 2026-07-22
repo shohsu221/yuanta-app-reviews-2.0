@@ -11,14 +11,15 @@ The dashboard is a 2026 Q1–Q2 review snapshot: Q1 = months 1–3, Q2 = months 
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import datetime
 from pathlib import Path
 
-import config
+from crawler.utils import config
 
 # Deployed file that the crawler now maintains end-to-end.
-WEB_HTML = "Yuanta_Reviews_Web.html"
+WEB_HTML = os.path.join("web", "Yuanta_Reviews_Web.html")
 
 # (brand label used inside Yuanta_Reviews_Web.html, short name, CSS token)
 BRANDS = [

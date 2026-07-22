@@ -5,13 +5,14 @@ import os
 import json
 
 # ── 路徑設定 ──────────────────────────────────────────────────
-# agent/ 的上一層，即 "Yuanta App Reviews/" 資料夾
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
+UTILS_DIR = os.path.dirname(os.path.abspath(__file__))
+CRAWLER_DIR = os.path.dirname(UTILS_DIR)
+BASE_DIR = os.path.dirname(CRAWLER_DIR)
+
 COMMENTS_DIR = os.path.join(BASE_DIR, "data", "comments")
 
 # App Store ID 快取（自動偵測後儲存）
-IDS_CACHE_FILE = os.path.join(AGENT_DIR, ".appstore_ids_cache.json")
+IDS_CACHE_FILE = os.path.join(CRAWLER_DIR, ".appstore_ids_cache.json")
 
 # ── 爬蟲設定 ─────────────────────────────────────────────────
 # 每次爬取的最新評論數（雙平台各自抓取 N 則，取其中最新且未出現在 JSON 的）

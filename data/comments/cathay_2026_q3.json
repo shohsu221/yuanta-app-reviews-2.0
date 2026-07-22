@@ -1,6 +1,30 @@
 [
   {
     "platform": "Google Play",
+    "date": "2026-07-21T20:12:07+08:00",
+    "username": "施宣宇",
+    "rating": 1,
+    "version": "未知",
+    "title": null,
+    "content": "突然登不進去",
+    "raw_id": "18cac880-7bbc-4da9-9f61-6e00f352f885",
+    "reply_content": null,
+    "reply_date": null
+  },
+  {
+    "platform": "Google Play",
+    "date": "2026-07-21T19:37:31+08:00",
+    "username": "TZUCHI LIN",
+    "rating": 1,
+    "version": "3.7.14",
+    "title": null,
+    "content": "app怎麼一直打不開??無語了我",
+    "raw_id": "f0efa941-882b-45ff-ac52-8d1b47794e19",
+    "reply_content": null,
+    "reply_date": null
+  },
+  {
+    "platform": "Google Play",
     "date": "2026-07-19T01:48:18+08:00",
     "username": "Lumaplee",
     "rating": 1,

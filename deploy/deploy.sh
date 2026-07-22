@@ -15,29 +15,27 @@
 
 set -euo pipefail
 
-SITE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+WEB_DIR="$ROOT_DIR/web"
+FUNCTIONS_DIR="$ROOT_DIR/functions"
+
 PROJECT_NAME="${CLOUDFLARE_PROJECT_NAME:-yuanta-app-reviews-2}"
 BRANCH="${CLOUDFLARE_BRANCH:-main}"
 BUILD_DIR="${YUANTA_DEPLOY_BUILD_DIR:-/private/tmp/yuanta-app-reviews-2-pages}"
 
 echo "=================================================="
 echo "  Yuanta App Reviews 2.0 自動部署"
-echo "  來源：$SITE_DIR"
+echo "  網頁來源：$WEB_DIR"
 echo "=================================================="
 
 prepare_build_dir() {
     mkdir -p "$BUILD_DIR"
-    rsync -av --delete --delete-excluded \
-        --exclude 'crawler/' \
-        --exclude '.wrangler/' \
-        --exclude 'deploy.sh' \
-        --exclude 'deploy-site.sh' \
-        --exclude 'site/' \
-        --exclude 'analysis/' \
-        --exclude 'archive/' \
-        --exclude '.gitignore' \
-        --exclude '.DS_Store' \
-        "$SITE_DIR/" "$BUILD_DIR/"
+    rsync -av --delete "$WEB_DIR/" "$BUILD_DIR/"
+    if [ -d "$FUNCTIONS_DIR" ]; then
+        mkdir -p "$BUILD_DIR/functions"
+        rsync -av "$FUNCTIONS_DIR/" "$BUILD_DIR/functions/"
+    fi
     echo "📦 靜態輸出：$BUILD_DIR"
 }
 

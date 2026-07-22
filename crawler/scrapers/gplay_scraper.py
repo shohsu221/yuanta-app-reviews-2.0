@@ -6,7 +6,7 @@ import time
 import logging
 from datetime import datetime, timezone, timedelta
 
-from models import Review
+from crawler.utils.models import Review
 
 logger = logging.getLogger(__name__)
 

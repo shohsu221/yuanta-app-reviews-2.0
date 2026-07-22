@@ -13,7 +13,8 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SITE_DIR="$ROOT_DIR/site"
 PROJECT_NAME="${CLOUDFLARE_PROJECT_NAME:-yuanta-app-reviews-ml}"
 BRANCH="${CLOUDFLARE_BRANCH:-main}"

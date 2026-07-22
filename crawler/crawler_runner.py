@@ -19,11 +19,10 @@ if AGENT_DIR not in sys.path:
 import json
 import re
 from pathlib import Path
-import config
-import gplay_scraper
-import appstore_scraper
-import notifier
-from models import Review
+
+from crawler.utils import config, notifier
+from crawler.utils.models import Review
+from crawler.scrapers import gplay_scraper, appstore_scraper
 
 logger = logging.getLogger(__name__)
 
